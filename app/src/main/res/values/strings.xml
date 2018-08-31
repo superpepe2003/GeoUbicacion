@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">GeoUbicacion</string>
+    <string name="user">Usuario</string>
+    <string name="pass">Password</string>
+    <string name="log">Iniciar</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="IngresoUser">Ingreso como usuario</string>
+    <string name="nombre">Nombre de Usuario</string>
+    <string name="codigo">Codigo suministrado</string>
+</resources>

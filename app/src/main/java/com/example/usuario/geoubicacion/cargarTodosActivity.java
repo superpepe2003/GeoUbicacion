@@ -24,6 +24,7 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
+import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -31,6 +32,9 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Timer;
+
+import static android.app.PendingIntent.getActivity;
 
 
 public class cargarTodosActivity extends AppCompatActivity {
@@ -67,17 +71,20 @@ public class cargarTodosActivity extends AppCompatActivity {
 
     }
 
-    private class AsyncCallWS extends AsyncTask<Void, Void, Void> {
+    private class AsyncCallWS extends AsyncTask<Void, Void, String> {
         @Override
-        protected Void doInBackground(Void... params) {
+        protected String doInBackground(Void... params) {
             Log.i(TAG, "doInBackground");
-            ejecutar();
-            return null;
+            String element = ejecutar();
+            return element;
         }
 
         @Override
-        protected void onPostExecute(Void result) {
-//            dialogo.dismiss();
+        protected void onPostExecute(String result) {
+            txtCarga.setText(result);
+            /*String s= result.toString();
+            getActivity()..txtCarga.setText(s.toString() + "");*/
+
         }
 
         @Override
@@ -96,10 +103,10 @@ public class cargarTodosActivity extends AppCompatActivity {
 
     }
 
-    public void ejecutar()
+    public String ejecutar()
     {
         try {
-            cargarTodosActivity.this.txtCarga.setText("Conectando");
+            //cargarTodosActivity.this.txtCarga.setText("Conectando");
             // Modelo el request
             SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
 
@@ -129,12 +136,14 @@ public class cargarTodosActivity extends AppCompatActivity {
             // Resultado
             String resultado = sobre.getResponse().toString();
 
-            cargarTodosActivity.this.txtCarga.setText(resultado.toString()+"");
+
             Log.i("Resultado", resultado.toString());
 
+            return "Ubicacion Enviada!";
 
         } catch (Exception e) {
             Log.e("ERROR", e.getMessage());
+            return "Error al enviar Ubicacion!";
         }
     }
 
@@ -166,7 +175,7 @@ public class cargarTodosActivity extends AppCompatActivity {
             _Lat = location.getLatitude();
             Cargar();
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,15000,0,locListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,10000,0,locListener);
 
     }
 
@@ -175,6 +184,7 @@ public class cargarTodosActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             _long=location.getLongitude();
             _Lat=location.getLatitude();
+            txtCarga.setText("");
             Cargar();
         }
 
@@ -198,6 +208,12 @@ public class cargarTodosActivity extends AppCompatActivity {
     {
         AsyncCallWS task = new AsyncCallWS();
         task.execute();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        txtCarga.setText("");
     }
 
     public void ejecutar10000()

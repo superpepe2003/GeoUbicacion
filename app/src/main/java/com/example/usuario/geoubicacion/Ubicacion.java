@@ -1,6 +1,8 @@
 package com.example.usuario.geoubicacion;
 
-public class Ubicacion {
+import java.io.Serializable;
+
+public class Ubicacion implements Serializable {
     public int id;
     public String Nombre;
     public double Longitud;

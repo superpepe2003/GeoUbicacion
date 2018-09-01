@@ -2,6 +2,7 @@ package com.example.usuario.geoubicacion;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     TextView btnUser;
 
     private final String TAG="Utopia Soft";
+    private Usuario _usuario= new Usuario();
 
 
     @TargetApi(23)
@@ -104,12 +106,12 @@ public class MainActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-//                startActivity(intent);
+                /*Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                startActivity(intent);*/
                 String[] luser= {txtUser.getText()+"" , txtPass.getText()+""};
 
-                AsyncCallWCF async = new AsyncCallWCF();
-                async.execute(luser);
+                AsyncCallWCF async = new AsyncCallWCF(MainActivity.this);
+                async.execute(txtUser.getText() + "", txtPass.getText() + "");
             }
         });
 
@@ -127,18 +129,32 @@ public class MainActivity extends AppCompatActivity {
 *
 */
 
-    private class AsyncCallWCF extends AsyncTask<String, Void, Void> {
-        @Override
-        protected Void doInBackground(String... params) {
-            String usuario = params[0];
-            String pass=params[1];
-            CargarUser(usuario,Integer.parseInt(pass));
-            return null;
+    private class AsyncCallWCF extends AsyncTask<String, Void, String> {
+
+        Context ctx;
+
+        public AsyncCallWCF(Context ctx) {
+            this.ctx = ctx;
         }
 
         @Override
-        protected void onPostExecute(Void result) {
+        protected String doInBackground(String... params) {
+            String usuario = params[0];
+            String pass= params[1];
+            String result = CargarUser(usuario,Integer.parseInt(pass));
+            return result;
+        }
 
+        @Override
+        protected void onPostExecute(String result) {
+            if (result.length()>0)
+                Toast.makeText(MainActivity.this, result.toString(),Toast.LENGTH_LONG).show();
+            else {
+                Intent intent = new Intent(ctx,MapsActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("User", _usuario);
+                ctx.startActivity(intent);
+            }
         }
 
         @Override
@@ -151,9 +167,10 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "onProgressUpdate");
         }
 
-    }
 
-        public void CargarUser(String user, int pass)
+}
+
+        public String CargarUser(String user, int pass)
         {
             // Modelo el request
             SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
@@ -173,11 +190,44 @@ public class MainActivity extends AppCompatActivity {
             try {
                 transporte.call(SOAP_ACTION, sobre);
                 SoapObject resultado = (SoapObject) sobre.getResponse();
-                Log.e("Volvieron", "ahora si");
+
+
+                int cant= resultado.getPropertyCount();
+                if(cant>0) {
+
+                    _usuario.id = Integer.parseInt(resultado.getProperty(1).toString());
+                    _usuario.codigo = Integer.parseInt(resultado.getProperty(0).toString());
+                    _usuario.nombre = resultado.getProperty(2).toString();
+                    _usuario.pass = resultado.getProperty(3).toString();
+                    _usuario.usuario = resultado.getProperty(5).toString();
+
+                    SoapObject miUbicacion = (SoapObject) resultado.getProperty(4);
+
+                    for (int j = 0; j < miUbicacion.getPropertyCount(); j++) {
+                        SoapObject u = (SoapObject) miUbicacion.getProperty(j);
+                        Ubicacion ubi = new Ubicacion();
+                        ubi.id = Integer.parseInt(u.getProperty(0).toString());
+                        ubi.Latitud = Double.parseDouble(u.getProperty(1).toString());
+                        ubi.Longitud = Double.parseDouble(u.getProperty(2).toString());
+                        ubi.Nombre = u.getProperty(3).toString();
+                        ubi.UsuarioId = _usuario.id;
+                        _usuario.Ubicaciones.add(ubi);
+                    }
+
+                    Log.e("Volvieron", "Usuario Existe!");
+
+                    return "";
+                }
+                else
+                {
+                    Log.e("Volvieron", "Usuario no Existe!");
+                    return "Usuario no existe";
+                }
             }
             catch (Exception e) {
                 Log.e("ERROR", e.getMessage());
             }
             // Resultado
+            return "";
         }
 }

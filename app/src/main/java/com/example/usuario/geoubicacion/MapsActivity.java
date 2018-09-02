@@ -69,13 +69,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        Intent in = getIntent();
+        _user = (Usuario) in.getSerializableExtra("User");
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        Intent in = getIntent();
-        _user = (Usuario) in.getSerializableExtra("User");
     }
 
 
@@ -109,8 +110,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void run() {
                         try {
                             //Ejecuta tu AsyncTask!
-                            MapsActivity.AsyncCallWS myTask = new MapsActivity.AsyncCallWS();
-                            myTask.execute();
+                            AgregarMarcadores();
                         } catch (Exception e) {
                             Log.e("error", e.getMessage());
                         }
@@ -122,7 +122,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         timer.schedule(task, 0, 15000);  //ejecutar en intervalo de 3 segundos.
     }
 
-    private class AsyncCallWS extends AsyncTask<Void, Void, Void> {
+    /*private class AsyncCallWS extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... params) {
             Log.i(TAG, "doInBackground");
@@ -151,7 +151,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.i(TAG, "onProgressUpdate");
         }
 
-    }
+    }*/
 
     private Marker agregarMarcador(double lat, double lng, String nom) {
         LatLng coordenadas = new LatLng(lat, lng);
@@ -181,7 +181,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    LocationListener locListener = new LocationListener() {
+    /*LocationListener locListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
             actualizarUbicacion(location);
@@ -201,12 +201,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onProviderDisabled(String provider) {
 
         }
-    };
+    };*/
 
     @TargetApi(23)
-    private void Permisos() {
+    /*private void Permisos() {
 
-       /* if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+       *//* if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -215,7 +215,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             return;
-        }*/
+        }*//*
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -228,10 +228,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //actualizarUbicacion(location);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 15000, 0, locListener);
 
-    }
+    }*/
 
 
-    public void CargarDatos() {
+    /*public void CargarDatos() {
         try {
 
             // Modelo el request
@@ -256,9 +256,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (Exception e) {
             Log.e("ERROR", e.getMessage());
         }
-    }
+    }*/
 
-    public void CargarResultados(SoapObject soapobject) {
+    /*public void CargarResultados(SoapObject soapobject) {
         _user.Ubicaciones.clear();
 
         SoapObject userResult = (SoapObject) soapobject.getProperty(0);
@@ -284,7 +284,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             _user.Ubicaciones.add(ubi);
         }
 
-    }
+    }*/
 
     public void AgregarMarcadores() {
         if (!marcador.isEmpty()) {

@@ -1,10 +1,12 @@
 package com.example.usuario.geoubicacion;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
@@ -13,14 +15,24 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.ksoap2.SoapEnvelope;
+import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapSerializationEnvelope;
+import org.ksoap2.transport.HttpTransportSE;
 import org.w3c.dom.Text;
 
 public class userActivity extends AppCompatActivity {
+
+    final String NAMESPACE = "http://tempuri.org/";
+    final String URL="http://geolocaliza.ddns.net/WcfGeoLocation/WSGeoUbicacion.svc";
+    final String METHOD_NAME = "ExisteCodigo";
+    final String SOAP_ACTION = "http://tempuri.org/IWSGeolizacion/ExisteCodigo";
 
 
     public static final int LOCATION_REQUEST_CODE = 1001;
@@ -80,10 +92,23 @@ public class userActivity extends AppCompatActivity {
 
                 if(TieneGps()) {
 
-                    Intent in = new Intent(userActivity.this, cargarTodosActivity.class);
-                    in.putExtra("user", txtUser.getText() + "");
-                    in.putExtra("codigo", Integer.parseInt(txtCodigo.getText().toString()));
-                    startActivity(in);
+                    if(txtCodigo.getText().toString().length()>0 && txtUser.getText().toString().length()>0) {
+                        AsycnCodigo asycnCodigo = new AsycnCodigo(userActivity.this);
+                        asycnCodigo.execute(txtUser.getText().toString(), txtCodigo.getText().toString());
+                    }
+                    else
+                        Toast.makeText(userActivity.this, "El Nombre y el codigo no pueden estar vacio",Toast.LENGTH_LONG).show();
+
+                    /*if(Existe) {
+                        Intent in = new Intent(userActivity.this, cargarTodosActivity.class);
+                        in.putExtra("user", txtUser.getText() + "");
+                        in.putExtra("codigo", Integer.parseInt(txtCodigo.getText().toString()));
+                        startActivity(in);
+                    }
+                    else
+                    {
+                        Toast.makeText(userActivity.this, "El Codigo no pertenece a ningun user",Toast.LENGTH_LONG).show();
+                    }*/
                 }
                 else
                 {
@@ -93,6 +118,91 @@ public class userActivity extends AppCompatActivity {
         });
     }
 
+    private class AsycnCodigo extends AsyncTask<String, Void, Boolean>
+    {
+        Context ctx;
+        String _user;
+        int _codigo;
+
+        AsycnCodigo(Context ctx)
+        {
+            this.ctx = ctx;
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            _codigo = Integer.parseInt(params[1]);
+            _user= params[0];
+
+            boolean b = BuscarUser(_codigo);
+            return b;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if(result) {
+                Intent intent = new Intent(ctx,cargarTodosActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("user", _user);
+                intent.putExtra("codigo", _codigo);
+                ctx.startActivity(intent);
+            }
+            else
+            {
+                Toast.makeText(userActivity.this, "El Codigo no pertenece a ningun user", Toast.LENGTH_LONG).show();
+            }
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            //Log.i(TAG, "onProgressUpdate");
+        }
+
+    }
+
+    private Boolean BuscarUser(int _codigo)
+    {
+        try {
+            //cargarTodosActivity.this.txtCarga.setText("Conectando");
+            // Modelo el request
+            SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
+
+            request.addProperty("codigo",_codigo);
+
+            // Modelo el Sobre
+            SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+
+            sobre.implicitTypes = true;
+            sobre.dotNet = true;
+            sobre.encodingStyle = SoapSerializationEnvelope.XSD;
+
+            sobre.setOutputSoapObject(request);
+
+            // Modelo el transporte
+            HttpTransportSE transporte = new HttpTransportSE(URL);
+
+            // Llamada
+            transporte.call(SOAP_ACTION, sobre);
+
+            // Resultado
+            //String resultado = sobre.getResponse().toString();
+            Boolean resultado = Boolean.parseBoolean(sobre.getResponse().toString());
+
+            Log.i("Resultado", resultado.toString());
+
+            return resultado;
+
+        } catch (Exception e) {
+            Log.e("ERROR", e.getMessage());
+            return false;
+        }
+    }
+
     private Boolean TieneGps()
     {
         LocationManager location = (LocationManager)getSystemService(LOCATION_SERVICE);
@@ -100,6 +210,8 @@ public class userActivity extends AppCompatActivity {
             return false;
         return true;
     }
+
+
 
     private void alertNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);

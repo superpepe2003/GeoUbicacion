@@ -54,8 +54,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     final String NAMESPACE = "http://tempuri.org/";
     final String URL = "http://geolocaliza.ddns.net/WcfGeoLocation/WSGeoUbicacion.svc";
-    final String METHOD_NAME = "GetLista";
-    final String SOAP_ACTION = "http://tempuri.org/IWSGeolizacion/GetLista";
+    final String METHOD_NAME = "Existe";
+    final String SOAP_ACTION = "http://tempuri.org/IWSGeolizacion/Existe";
 
     ProgressDialog dialogo;
 
@@ -110,7 +110,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void run() {
                         try {
                             //Ejecuta tu AsyncTask!
-                            AgregarMarcadores();
+                            //AgregarMarcadores();
+                            AsyncCallWS miTarea= new AsyncCallWS();
+                            miTarea.execute();
+
                         } catch (Exception e) {
                             Log.e("error", e.getMessage());
                         }
@@ -122,7 +125,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         timer.schedule(task, 0, 15000);  //ejecutar en intervalo de 3 segundos.
     }
 
-    /*private class AsyncCallWS extends AsyncTask<Void, Void, Void> {
+    private class AsyncCallWS extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... params) {
             Log.i(TAG, "doInBackground");
@@ -151,7 +154,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.i(TAG, "onProgressUpdate");
         }
 
-    }*/
+    }
 
     private Marker agregarMarcador(double lat, double lng, String nom) {
         LatLng coordenadas = new LatLng(lat, lng);
@@ -230,12 +233,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }*/
 
-
-    /*public void CargarDatos() {
+    public void CargarDatos() {
         try {
 
             // Modelo el request
             SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
+            request.addProperty("usuario", _user.usuario);
+            request.addProperty("pass", _user.pass);
             //request.addProperty("Param", "valor"); // Paso parametros al WS
 
             // Modelo el Sobre
@@ -256,35 +260,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (Exception e) {
             Log.e("ERROR", e.getMessage());
         }
-    }*/
+    }
 
-    /*public void CargarResultados(SoapObject soapobject) {
+    public void CargarResultados(SoapObject resultado) {
         _user.Ubicaciones.clear();
 
-        SoapObject userResult = (SoapObject) soapobject.getProperty(0);
-        SoapObject userUbi = (SoapObject) userResult.getProperty("Ubicaciones");
-        SoapObject userUbiModel = (SoapObject) userUbi.getProperty("UbicacionModel");
+        int cant= resultado.getPropertyCount();
+        if(cant>0) {
+            _user.Ubicaciones.clear();
 
-        _user.id = Integer.parseInt(userResult.getProperty(1).toString());
-        _user.codigo = Integer.parseInt(userResult.getProperty(0).toString());
-        _user.nombre = userResult.getProperty(2).toString();
-        _user.pass = userResult.getProperty(3).toString();
-        _user.usuario = userResult.getProperty(5).toString();
+            SoapObject miUbicacion = (SoapObject) resultado.getProperty(4);
 
-        SoapObject miUbicacion = (SoapObject) userResult.getProperty(4);
-
-        for (int j = 0; j < miUbicacion.getPropertyCount(); j++) {
-            SoapObject u = (SoapObject) miUbicacion.getProperty(j);
-            Ubicacion ubi = new Ubicacion();
-            ubi.id = Integer.parseInt(u.getProperty(0).toString());
-            ubi.Latitud = Double.parseDouble(u.getProperty(1).toString());
-            ubi.Longitud = Double.parseDouble(u.getProperty(2).toString());
-            ubi.Nombre = u.getProperty(3).toString();
-            ubi.UsuarioId = _user.id;
-            _user.Ubicaciones.add(ubi);
+            for (int j = 0; j < miUbicacion.getPropertyCount(); j++) {
+                SoapObject u = (SoapObject) miUbicacion.getProperty(j);
+                Ubicacion ubi = new Ubicacion();
+                ubi.id = Integer.parseInt(u.getProperty(0).toString());
+                ubi.Latitud = Double.parseDouble(u.getProperty(1).toString());
+                ubi.Longitud = Double.parseDouble(u.getProperty(2).toString());
+                ubi.Nombre = u.getProperty(3).toString();
+                ubi.UsuarioId = _user.id;
+                _user.Ubicaciones.add(ubi);
+            }
         }
-
-    }*/
+    }
 
     public void AgregarMarcadores() {
         if (!marcador.isEmpty()) {
@@ -292,8 +290,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mar.remove();
             marcador.clear();
         }
-
-
 
         for (Ubicacion ubi : _user.Ubicaciones)
             marcador.add(agregarMarcador(ubi.Latitud, ubi.Longitud, ubi.Nombre));

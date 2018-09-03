@@ -194,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
 
                 int cant= resultado.getPropertyCount();
                 if(cant>0) {
+                    _usuario.Ubicaciones.clear();
 
                     _usuario.id = Integer.parseInt(resultado.getProperty(1).toString());
                     _usuario.codigo = Integer.parseInt(resultado.getProperty(0).toString());
@@ -226,8 +227,8 @@ public class MainActivity extends AppCompatActivity {
             }
             catch (Exception e) {
                 Log.e("ERROR", e.getMessage());
+                return "Problemas para acceder a la BD";
             }
             // Resultado
-            return "";
         }
 }

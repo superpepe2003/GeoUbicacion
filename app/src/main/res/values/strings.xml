@@ -7,4 +7,8 @@
     <string name="IngresoUser">Ingreso como usuario</string>
     <string name="nombre">Nombre de Usuario</string>
     <string name="codigo">Codigo suministrado</string>
+    <string name="title_activity_menu">menu</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
 </resources>

@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     EditText txtPass;
     Button btnLogin;
     TextView lblInicio;
-    TextView btnUser;
 
     private final String TAG="Utopia Soft";
     private Usuario _usuario= new Usuario();
@@ -61,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
         txtPass = findViewById(R.id.txtPass);
         btnLogin = findViewById(R.id.btnLog);
         lblInicio = findViewById(R.id.lblIngreso);
-        btnUser = findViewById(R.id.txtIngresoUser);
 
         CargarEventos();
 
@@ -112,14 +110,6 @@ public class MainActivity extends AppCompatActivity {
 
                 AsyncCallWCF async = new AsyncCallWCF(MainActivity.this);
                 async.execute(txtUser.getText() + "", txtPass.getText() + "");
-            }
-        });
-
-        btnUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, userActivity.class);
-                startActivity(intent);
             }
         });
 

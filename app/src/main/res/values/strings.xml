@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GeoUbicacion</string>
+    <string name="app_name">Geo Ubicacion</string>
     <string name="user">Usuario</string>
     <string name="pass">Password</string>
     <string name="log">Iniciar</string>
@@ -11,4 +11,7 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="menu_admin">Ingreso Administrador</string>
+    <string name="menu_user">Ingreso Usuario</string>
+    <string name="menu_config">Configuracion</string>
 </resources>

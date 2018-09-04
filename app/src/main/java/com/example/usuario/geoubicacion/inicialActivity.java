@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.support.v7.widget.Toolbar;
 
 public class inicialActivity extends AppCompatActivity {
 
@@ -13,6 +14,9 @@ public class inicialActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inicial);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
+        setSupportActionBar(toolbar);
     }
 
     @Override

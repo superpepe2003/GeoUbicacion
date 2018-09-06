@@ -1,33 +1,30 @@
 package com.example.usuario.geoubicacion;
 
-import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Dialog;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Icon;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -41,9 +38,10 @@ import org.ksoap2.transport.HttpTransportSE;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+import static android.app.PendingIntent.getActivity;
+
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private List<Marker> marcador = new ArrayList<Marker>();
@@ -55,20 +53,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     final String NAMESPACE = "http://tempuri.org/";
     final String URL = "http://geolocaliza.ddns.net/WcfGeoLocation/WSGeoUbicacion.svc";
     final String METHOD_NAME = "Existe";
+    final String METHOD_NAME2 = "Remove";
     final String SOAP_ACTION = "http://tempuri.org/IWSGeolizacion/Existe";
+    final String SOAP_ACTION2 = "http://tempuri.org/IWSGeolizacion/Remove";
 
+    
     ProgressDialog dialogo;
+
 
     private String TAG = "Vik";
 
     private List<Ubicacion> _ubicaciones = new ArrayList<Ubicacion>();
     private Usuario _user = new Usuario();
 
+    MenuItem btnRemove;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        btnRemove = (MenuItem) findViewById(R.id.menu_elimina);
 
         Intent in = getIntent();
         _user = (Usuario) in.getSerializableExtra("User");
@@ -77,6 +82,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
+        setSupportActionBar(toolbar);
+        MapsActivity.this.setTitle(_user.nombre);
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_mapa, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem opcMenu) {
+        int id = opcMenu.getItemId();
+        if (id == R.id.menu_actualiza) {
+            AsyncCallWS miTarea= new AsyncCallWS(MapsActivity.this);
+            miTarea.execute(1);
+        }
+        if (id == R.id.menu_elimina) {
+            createDialog().show();
+        }
+        if (id == R.id.menu_buscar) {
+            createDialog().show();
+        }
+        return true;
+    }
+
+    public AlertDialog createDialog(){
+        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+
+        builder.setTitle("Borrar Ubicaciones")
+                .setMessage("¿Seguro desea borrar las Ubicaciones?")
+                .setPositiveButton("Confirmar",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                AsyncCallWS miTarea= new AsyncCallWS(MapsActivity.this);
+                                miTarea.execute(2, _user.codigo);
+                            }
+                        })
+                .setNegativeButton("Cancelar",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        });
+        return builder.create();
     }
 
 
@@ -93,6 +148,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        AsyncCallWS miTarea= new AsyncCallWS(this);
+        miTarea.execute(1);
+
         //miUbicacion();
 
         // Add a marker in Sydney and move the camera
@@ -103,41 +161,70 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        MapsActivity.AsyncCallWS task = new MapsActivity.AsyncCallWS();
 //        task.execute();
 
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    public void run() {
-                        try {
-                            //Ejecuta tu AsyncTask!
-                            //AgregarMarcadores();
-                            AsyncCallWS miTarea= new AsyncCallWS();
-                            miTarea.execute();
-
-                        } catch (Exception e) {
-                            Log.e("error", e.getMessage());
-                        }
-                    }
-                });
-            }
-        };
-
-        timer.schedule(task, 0, 15000);  //ejecutar en intervalo de 3 segundos.
+//        TimerTask task = new TimerTask() {
+//            @Override
+//            public void run() {
+//                handler.post(new Runnable() {
+//                    public void run() {
+//                        try {
+//                            //Ejecuta tu AsyncTask!
+//                            //AgregarMarcadores();
+//                            AsyncCallWS miTarea= new AsyncCallWS();
+//                            miTarea.execute();
+//
+//                        } catch (Exception e) {
+//                            Log.e("error", e.getMessage());
+//                        }
+//                    }
+//                });
+//            }
+//        };
+//
+//        timer.schedule(task, 0, 15000);  //ejecutar en intervalo de 3 segundos.
     }
 
-    private class AsyncCallWS extends AsyncTask<Void, Void, Void> {
+
+    private class AsyncCallWS extends AsyncTask<Integer, Void, Boolean> {
+
+        Context ctx;
+        int param=0;
+
+        public AsyncCallWS(Context ctx)
+        {
+            this.ctx=ctx;
+        }
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Boolean doInBackground(Integer... params) {
+            param = params[0];
             Log.i(TAG, "doInBackground");
             //Permisos();
-            CargarDatos();
-            return null;
+            if(param==1)
+                CargarDatos();
+            if(param==2) {
+                return EliminarDatos(params[1]);
+            }
+            return false;
         }
 
         @Override
-        protected void onPostExecute(Void result) {
+        protected void onPostExecute(Boolean result) {
             dialogo.dismiss();
-            AgregarMarcadores();
+            if(param==1) {
+                AgregarMarcadores();
+//                if(_user.Ubicaciones.isEmpty())
+//                    btnRemove.setIcon(R.drawable.ic_eliminardisable);
+//                else
+//                    btnRemove.setIcon(R.drawable.ic_eliminar);
+            }
+            if(param==2) {
+                if(result) {
+                    Toast.makeText(MapsActivity.this, "Las Ubicaciones fueron eliminados", Toast.LENGTH_LONG).show();
+                    BorrarMarcadores();
+                    //btnRemove.setIcon(ctx.getResources().getDrawable(R.drawable.ic_eliminardisable));
+                }
+                else
+                    Toast.makeText(MapsActivity.this, "Las Ubicaciones no fueron eliminados", Toast.LENGTH_LONG).show();
+            }
         }
 
         @Override
@@ -233,6 +320,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }*/
 
+    public Boolean EliminarDatos(int codigo) {
+        try {
+
+            // Modelo el request
+            SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME2);
+            request.addProperty("codigo", codigo);
+            //request.addProperty("Param", "valor"); // Paso parametros al WS
+
+            // Modelo el Sobre
+            SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER10);
+            sobre.dotNet = true;
+            sobre.setOutputSoapObject(request);
+
+            // Modelo el transporte
+            HttpTransportSE transporte = new HttpTransportSE(URL);
+
+            // Llamada
+            transporte.call(SOAP_ACTION2, sobre);
+
+            // Resultado
+            Boolean resultado = Boolean.parseBoolean(sobre.getResponse().toString());
+            //CargarResultados(resultado);
+            return resultado;
+
+        } catch (Exception e) {
+            Log.e("ERROR", e.getMessage());
+            return false;
+        }
+    }
+
     public void CargarDatos() {
         try {
 
@@ -285,14 +402,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void AgregarMarcadores() {
+        BorrarMarcadores();
+
+        for (Ubicacion ubi : _user.Ubicaciones)
+            marcador.add(agregarMarcador(ubi.Latitud, ubi.Longitud, ubi.Nombre));
+    }
+
+    public void BorrarMarcadores(){
         if (!marcador.isEmpty()) {
             for(Marker mar:marcador)
                 mar.remove();
             marcador.clear();
         }
+    }
 
-        for (Ubicacion ubi : _user.Ubicaciones)
-            marcador.add(agregarMarcador(ubi.Latitud, ubi.Longitud, ubi.Nombre));
+    public Marker BuscarMarcador(String nombre)
+    {
+        for(Marker mar:marcador)
+        {
+            if(mar.getTitle().toString()==nombre)
+                return mar;
+        }
+        return null;
     }
 
 //        }

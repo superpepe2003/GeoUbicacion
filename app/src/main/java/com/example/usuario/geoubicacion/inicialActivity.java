@@ -1,5 +1,6 @@
 package com.example.usuario.geoubicacion;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

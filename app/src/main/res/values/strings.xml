@@ -14,4 +14,7 @@
     <string name="menu_admin">Ingreso Administrador</string>
     <string name="menu_user">Ingreso Usuario</string>
     <string name="menu_config">Configuracion</string>
+    <string name="menu_mapa_actualizar">Actualizar</string>
+    <string name="menu_mapa_remove">Eliminar</string>
+    <string name="menu_mapa_config">Configuracion</string>
 </resources>

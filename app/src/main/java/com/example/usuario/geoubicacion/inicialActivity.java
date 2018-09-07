@@ -1,13 +1,19 @@
 package com.example.usuario.geoubicacion;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.support.v7.widget.Toolbar;
+
+import com.google.android.gms.maps.model.LatLng;
 
 public class inicialActivity extends AppCompatActivity {
 
@@ -36,6 +42,15 @@ public class inicialActivity extends AppCompatActivity {
         if (id == R.id.menu_user) {
             Intent in = new Intent(this, userActivity.class);
             startActivity(in);
+        }
+
+        if(id==R.id.menu_setting){
+            try {
+                DialogFragment d = new dialogFragmentMap(new LatLng(-34,-55), "Pablo");
+                d.show(getSupportFragmentManager(), null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return true;
     }

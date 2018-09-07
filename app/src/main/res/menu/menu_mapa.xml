@@ -2,7 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/menu_buscar" android:title="Buscar"
-        app:showAsAction="ifRoom" android:icon="@drawable/ic_buscar"/>
+        app:showAsAction="always" android:icon="@drawable/ic_buscar"
+        app:actionViewClass="android.support.v7.widget.SearchView"/>
     <item android:id="@+id/menu_actualiza" android:title="@string/menu_mapa_actualizar"
         app:showAsAction="ifRoom" android:icon="@drawable/ic_actualizar"/>
     <item android:id="@+id/menu_elimina" android:title="@string/menu_mapa_remove"

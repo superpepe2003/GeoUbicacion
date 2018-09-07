@@ -13,11 +13,13 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.support.v7.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -73,8 +75,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        btnRemove = (MenuItem) findViewById(R.id.menu_elimina);
-
         Intent in = getIntent();
         _user = (Usuario) in.getSerializableExtra("User");
 
@@ -92,7 +92,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_mapa, menu);
+        try {
+            SearchView searchView = (SearchView) menu.findItem(R.id.menu_buscar).getActionView();
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    //Toast.makeText(MapsActivity.this,"Buscar", Toast.LENGTH_LONG).show();
+                    Ubicacion ubi = retornarUbicacion(query);
+                    if(ubi!=null) {
+                        new dialogFragmentMap(new LatLng(ubi.Latitud,ubi.Longitud), query).show(getSupportFragmentManager(), null);
+                    }
+                    else
+                        Toast.makeText(MapsActivity.this,"Ubicacion no encontrada", Toast.LENGTH_LONG).show();
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    return false;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.e("Error", ex.getMessage());
+        }
+
+
+        btnRemove = (MenuItem) findViewById(R.id.menu_elimina);
         return true;
+    }
+
+    public Ubicacion retornarUbicacion(String nom)
+    {
+        Ubicacion _ubicacion=null;
+        for(Ubicacion ub:_user.Ubicaciones)
+        {
+            if(ub.Nombre.equalsIgnoreCase(nom))
+            {
+                _ubicacion=ub;
+                break;
+            }
+        }
+        return _ubicacion;
     }
 
     @Override
@@ -221,6 +263,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Toast.makeText(MapsActivity.this, "Las Ubicaciones fueron eliminados", Toast.LENGTH_LONG).show();
                     BorrarMarcadores();
                     //btnRemove.setIcon(ctx.getResources().getDrawable(R.drawable.ic_eliminardisable));
+                    //btnRemove.setIcon(R.drawable.ic_eliminardisable);
                 }
                 else
                     Toast.makeText(MapsActivity.this, "Las Ubicaciones no fueron eliminados", Toast.LENGTH_LONG).show();
@@ -245,7 +288,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Marker agregarMarcador(double lat, double lng, String nom) {
         LatLng coordenadas = new LatLng(lat, lng);
-        CameraUpdate miUbicacion = CameraUpdateFactory.newLatLngZoom(coordenadas, 20);
+        CameraUpdate miUbicacion = CameraUpdateFactory.newLatLngZoom(coordenadas, 14);
 
         //mMap.clear();
         Marker miMarcador = mMap.addMarker(new MarkerOptions()

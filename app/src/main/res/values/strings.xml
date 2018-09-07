@@ -17,4 +17,7 @@
     <string name="menu_mapa_actualizar">Actualizar</string>
     <string name="menu_mapa_remove">Eliminar</string>
     <string name="menu_mapa_config">Configuracion</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

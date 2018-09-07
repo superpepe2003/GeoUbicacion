@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="portada">250dp</dimen>
+    <dimen name="dialog_map">350dp</dimen>
 </resources>

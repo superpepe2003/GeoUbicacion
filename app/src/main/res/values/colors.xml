@@ -4,5 +4,6 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="foreGround">#ffff</color>
+    <color name="alpha">#b0303F9F</color>
     <color name="foreground_material_light">#e86767</color>
 </resources>

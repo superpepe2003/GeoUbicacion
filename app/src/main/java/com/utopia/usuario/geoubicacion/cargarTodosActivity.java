@@ -71,6 +71,12 @@ public class cargarTodosActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onDestroy() {
+        locListener=null;
+        super.onDestroy();
+    }
+
     private class AsyncCallWS extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... params) {

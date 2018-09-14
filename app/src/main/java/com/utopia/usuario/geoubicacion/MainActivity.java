@@ -187,9 +187,8 @@ public class MainActivity extends AppCompatActivity {
                     _usuario.Ubicaciones.clear();
 
                     _usuario.id = Integer.parseInt(resultado.getProperty(1).toString());
-                    _usuario.codigo = Integer.parseInt(resultado.getProperty(0).toString());
                     _usuario.nombre = resultado.getProperty(2).toString();
-                    _usuario.pass = resultado.getProperty(3).toString();
+                    _usuario.pass = Integer.parseInt(resultado.getProperty(3).toString());
                     _usuario.usuario = resultado.getProperty(5).toString();
 
                     SoapObject miUbicacion = (SoapObject) resultado.getProperty(4);

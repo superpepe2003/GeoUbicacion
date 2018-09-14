@@ -155,25 +155,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public AlertDialog createDialog(){
         AlertDialog.Builder builder=new AlertDialog.Builder(this);
-
-        builder.setTitle("Borrar Ubicaciones")
-                .setMessage("¿Seguro desea borrar las Ubicaciones?")
-                .setPositiveButton("Confirmar",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                AsyncCallWS miTarea= new AsyncCallWS(MapsActivity.this);
-                                miTarea.execute(2, _user.codigo);
-                            }
-                        })
-                .setNegativeButton("Cancelar",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        });
-        return builder.create();
+        return null;
+//        builder.setTitle("Borrar Ubicaciones")
+//                .setMessage("¿Seguro desea borrar las Ubicaciones?")
+//                .setPositiveButton("Confirmar",
+//                        new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                AsyncCallWS miTarea= new AsyncCallWS(MapsActivity.this);
+//                                miTarea.execute(2, _user.codigo);
+//                            }
+//                        })
+//                .setNegativeButton("Cancelar",
+//                        new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//
+//                            }
+//                        });
+//        return builder.create();
     }
 
 

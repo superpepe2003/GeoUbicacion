@@ -5,7 +5,7 @@
     <string name="log">Iniciar</string>
     <string name="title_activity_maps">Map</string>
     <string name="IngresoUser">Ingreso como usuario</string>
-    <string name="nombre">Nombre de Usuario</string>
+    <string name="nombre">Nombre</string>
     <string name="codigo">Codigo suministrado</string>
     <string name="title_activity_menu">menu</string>
     <string name="title_home">Home</string>
@@ -17,6 +17,12 @@
     <string name="menu_mapa_actualizar">Actualizar</string>
     <string name="menu_mapa_remove">Eliminar</string>
     <string name="menu_mapa_config">Configuracion</string>
+    <string name="usuario_administrador">Me supervisa</string>
+    <string name="btnGuardar">Guardar</string>
+    <string name="btnCancelar">Cancelar</string>
+    <string name="error_registro1">NO puede estar vacio!</string>
+    <string name="error_registro2">NO puede ser menor a 6 digitos</string>
+
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

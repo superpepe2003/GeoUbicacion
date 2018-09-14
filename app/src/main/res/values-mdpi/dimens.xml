@@ -2,4 +2,6 @@
 <resources>
     <dimen name="portada">250dp</dimen>
     <dimen name="dialog_map">350dp</dimen>
+    <dimen name="toolbar_tamaño">50dp</dimen>
+    <dimen name="portada_imagen">75dp</dimen>
 </resources>

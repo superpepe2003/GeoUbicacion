@@ -8,8 +8,8 @@ import java.util.List;
 public class Usuario implements Serializable {
     public int id;
     public String usuario;
-    public String pass;
+    public Integer pass;
     public String nombre;
-    public int codigo;
+    public String usuarioAdmin;
     public List<Ubicacion> Ubicaciones= new ArrayList<Ubicacion>();
 }

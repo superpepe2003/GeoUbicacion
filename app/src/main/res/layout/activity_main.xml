@@ -11,27 +11,52 @@
         android:layout_height="@dimen/portada"
         android:layout_gravity="center_horizontal"
         android:contentDescription="TODO"
-        android:src="@drawable/images"></ImageView>
+        android:src="@drawable/imageubi"></ImageView>
 
-    <EditText
-        android:id="@+id/txtUser"
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/user"
-        android:inputType="text"
-        />
+        android:hint="@string/user">
 
-    <EditText
+        <android.support.design.widget.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtUser"
+            android:inputType="text"
+            />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/pass">
+
+        <android.support.design.widget.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtPass"
+            android:inputType="numberPassword"
+            />
+    </android.support.design.widget.TextInputLayout>
+
+    <!--<EditText-->
+        <!--android:id="@+id/txtUser"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:hint="@string/user"-->
+        <!--android:inputType="text"-->
+        <!--/>-->
+
+ <!--   <EditText
         android:id="@+id/txtPass"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/pass"
-        android:inputType="numberPassword"/>
+        &lt;!&ndash;android:inputType="numberPassword"/>&ndash;&gt;-->
 
     <Button
         android:id="@+id/btnLog"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/boton"
         android:layout_gravity="center"
         android:text="@string/log"/>
 

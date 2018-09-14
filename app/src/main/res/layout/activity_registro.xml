@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".registroActivity"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/back_formulario">
+
+    <ImageButton
+        android:id="@+id/btnImagen"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/portada_imagen"
+        android:layout_marginBottom="70dp"
+        android:background="@color/back_formulario"
+        android:scaleType="centerInside"
+        android:src="@drawable/images" />
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/user"
+        android:layout_margin="10dp"
+        android:id="@+id/txtUserLayout">
+
+        <android.support.design.widget.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtUser_registro"
+            android:maxLines="1"
+            android:inputType="text"
+            />
+    </android.support.design.widget.TextInputLayout>
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/pass"
+        android:layout_margin="10dp"
+        android:id="@+id/txtPassLayout">
+
+        <android.support.design.widget.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtPass_registro"
+            android:inputType="numberPassword"
+            />
+    </android.support.design.widget.TextInputLayout>
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/nombre"
+        android:layout_margin="10dp"
+        android:id="@+id/txtNombreLayout">
+
+        <android.support.design.widget.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtNombre_registro"
+            android:maxLines="1"
+            android:inputType="text"
+            />
+    </android.support.design.widget.TextInputLayout>
+
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Es supervisado"
+        android:id="@+id/chkSupervisado"/>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/usuario_administrador"
+        android:layout_margin="10dp"
+        android:id="@+id/txtUserAdministradorLayout"
+        android:visibility="invisible">
+
+        <android.support.design.widget.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtUserAdministrador_registro"
+            android:maxLines="1"
+            android:inputType="text"
+            />
+    </android.support.design.widget.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+        <Button
+            style="@style/boton"
+            android:text="@string/btnGuardar"
+            android:id="@+id/btnGuardar_Usuario"/>
+        <Button
+            style="@style/botonInvertido"
+            android:text="@string/btnCancelar"
+            android:id="@+id/btnCancelar_Usuario"/>
+
+    </LinearLayout>
+
+</LinearLayout>

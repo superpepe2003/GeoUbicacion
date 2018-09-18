@@ -278,21 +278,21 @@ public class cargarTodosActivity extends AppCompatActivity {
         }
     }
 }
-
-class MarshalDouble implements Marshal {
-    public Object readInstance(XmlPullParser parser, String namespace, String name,
-                               PropertyInfo expected) throws IOException, XmlPullParserException {
-
-        return Double.parseDouble(parser.nextText());
-    }
-
-
-    public void register(SoapSerializationEnvelope cm)  {
-        cm.addMapping(cm.xsd, "double", Double.class, this);
-    }
-
-
-    public void writeInstance(XmlSerializer writer, Object obj) throws IOException {
-        writer.text(obj.toString());
-    }
-}
+//
+//class MarshalDouble implements Marshal {
+//    public Object readInstance(XmlPullParser parser, String namespace, String name,
+//                               PropertyInfo expected) throws IOException, XmlPullParserException {
+//
+//        return Double.parseDouble(parser.nextText());
+//    }
+//
+//
+//    public void register(SoapSerializationEnvelope cm)  {
+//        cm.addMapping(cm.xsd, "double", Double.class, this);
+//    }
+//
+//
+//    public void writeInstance(XmlSerializer writer, Object obj) throws IOException {
+//        writer.text(obj.toString());
+//    }
+//}

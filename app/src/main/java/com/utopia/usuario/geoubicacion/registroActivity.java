@@ -3,9 +3,13 @@ package com.utopia.usuario.geoubicacion;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.icu.util.Output;
+import android.media.ExifInterface;
+import android.media.ThumbnailUtils;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -43,17 +47,14 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
 
 public class registroActivity extends AppCompatActivity {
-
-    final String NAMESPACE = "http://tempuri.org/";
-    final String URL="http://geolocaliza.ddns.net/WcfGeoLocation/WSGeoUbicacion.svc";
-    final String METHOD_NAME = "GrabarU";
-    final String SOAP_ACTION = "http://tempuri.org/IWSGeolizacion/GrabarU";
 
     ImageButton btnImage;
     String foto, dir;
@@ -110,6 +111,8 @@ public class registroActivity extends AppCompatActivity {
                     _user.usuario=txtUser.getText().toString();
                     _user.usuarioAdmin=txtAdmin.getText().toString();
 
+                    btnGuardar.setEnabled(false);
+                    btnCancelar.setEnabled(false);
                     miTask mTask= new miTask();
                     mTask.execute();
                 }
@@ -236,23 +239,97 @@ public class registroActivity extends AppCompatActivity {
                 }
                 Uri out = FileProvider.getUriForFile(registroActivity.this, "com.utopia.usuario.geoubicacion", newfile);
                 in.putExtra(MediaStore.EXTRA_OUTPUT, out);
-                startActivityForResult(in, 2);
+                startActivityForResult(in, 1);
             }
         });
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        try
+        {
         File file= new File(foto);
         if(file.exists()) {
             Bitmap originalBitmap = BitmapFactory.decodeFile(foto);
+            originalBitmap= ThumbnailUtils.extractThumbnail(originalBitmap, 320,320);
+            Matrix m = new Matrix();
+            m.postRotate(neededRotation(file));
+
+            originalBitmap = Bitmap.createBitmap(originalBitmap,
+                    0, 0, originalBitmap.getWidth(), originalBitmap.getHeight(),
+                    m, true);
+
             RoundedBitmapDrawable roundDrawable = RoundedBitmapDrawableFactory.create(getResources(),originalBitmap);
             roundDrawable.setCornerRadius(originalBitmap.getHeight());
 
+
+            File newfile = new File(foto);
+            OutputStream os;
+
+                os = new FileOutputStream(newfile);
+                //originalBitmap.compress(Bitmap.CompressFormat.PNG,100,os);
+                originalBitmap = roundDrawable.getBitmap();
+                originalBitmap.compress(Bitmap.CompressFormat.JPEG,75,os);
+                os.flush();
+                os.close();
+
+            //Uri out = FileProvider.getUriForFile(registroActivity.this, "com.utopia.usuario.geoubicacion", newfile);
+
+            //RoundedBitmapDrawable roundDrawable = RoundedBitmapDrawableFactory.create(getResources(),originalBitmap);
+            //roundDrawable.setCornerRadius(originalBitmap.getHeight());
+
             btnImage.setImageDrawable(roundDrawable);
-            btnImage.setRotation(-90);
             isFoto=true;
             //base64String = imagenToByte();
         }
+        }
+        catch (Exception ex)
+        {
+            Log.e("error", ex.getMessage());
+        }
+    }
+
+    public static int neededRotation(File ff)
+    {
+        try
+        {
+
+            ExifInterface exif = new ExifInterface(ff.getAbsolutePath());
+            int orientation = exif.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+            if (orientation == ExifInterface.ORIENTATION_ROTATE_270)
+            { return 270; }
+            if (orientation == ExifInterface.ORIENTATION_ROTATE_180)
+            { return 180; }
+            if (orientation == ExifInterface.ORIENTATION_ROTATE_90)
+            { return 90; }
+            return 0;
+
+        } catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private Bitmap resizeImagen(Bitmap b, int x, int y)
+    {
+        int width = b.getWidth();
+        int height= b.getHeight();
+        int nwidth = x;
+        int nheight =y;
+
+        float scaleWidth = ((float) nwidth) / width;
+        float scaleHeight= ((float)nheight) / height;
+
+        Matrix matrix = new Matrix();
+        matrix.postScale(scaleWidth,scaleHeight);
+
+        Bitmap resizeBitmap= Bitmap.createBitmap(b,0,0,width,height,matrix,true);
+        return resizeBitmap;
     }
 
     private class miTask extends AsyncTask<Void,Void,Integer>{
@@ -266,6 +343,8 @@ public class registroActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Integer aResult) {
+            btnGuardar.setEnabled(true);
+            btnCancelar.setEnabled(true);
             if(aResult==0) {
                 Toast.makeText(registroActivity.this, "Usuario Grabado", Toast.LENGTH_LONG).show();
                 finish();
@@ -286,11 +365,11 @@ public class registroActivity extends AppCompatActivity {
         try {
             //cargarTodosActivity.this.txtCarga.setText("Conectando");
             // Modelo el request
-            SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
+            SoapObject request = new SoapObject(cConeccion.NAMESPACE, cConeccion.METHOD_NAME_GRABAR_USUARIO);
 
-            String fot1 = imagenToByte();
+            String fot1 = cConeccion.imagenToByte(foto);
 
-            Escribir(fot1);
+            //Escribir(fot1);
             request.addProperty("id", 0);
             request.addProperty("user",_user.usuario);
             request.addProperty("nombre",_user.nombre);
@@ -317,11 +396,11 @@ public class registroActivity extends AppCompatActivity {
 
 
             // Modelo el transporte
-            HttpTransportSE transporte = new HttpTransportSE(URL);
+            HttpTransportSE transporte = new HttpTransportSE(cConeccion.URL);
 
             //transporte.debug=true;
             // Llamada
-            transporte.call(SOAP_ACTION, sobre);
+            transporte.call(cConeccion.SOAP_ACTION_GRABAR_USUARIO, sobre);
 
             // Resultado
             String resultado = sobre.getResponse().toString();
@@ -341,7 +420,7 @@ public class registroActivity extends AppCompatActivity {
         }
     }
 
-    public void Escribir(String texto)
+    /*public void Escribir(String texto)
     {
         try {
             File fav = new File(dir + "fichero.txt");
@@ -356,15 +435,7 @@ public class registroActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
-    public String imagenToByte()
-    {
-        Bitmap bm = BitmapFactory.decodeFile(foto);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bm.compress(Bitmap.CompressFormat.JPEG,50,baos);
-        byte[] b = baos.toByteArray();
-        return Base64.encodeToString(b,Base64.DEFAULT);
-    }
+*/
 
 //    class CmarshalBase64 implements Marshal {
 //        public static Class BYTE_ARRAY_CLASS = new byte[0].getClass();

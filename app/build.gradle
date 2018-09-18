@@ -6,8 +6,8 @@ android {
         applicationId 'com.utopia.usuario.geoubicacion'
         minSdkVersion 15
         targetSdkVersion 28
-        versionCode 8
-        versionName "0.17"
+        versionCode 9
+        versionName "0.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/menu_top"
+        >
+    <item  android:id="@+id/navEliminar"
+        android:title="Eliminar"
+        android:icon="@drawable/ic_eliminar"
+        >
+
+    </item>
+    <item  android:id="@+id/navActualizar"
+        android:title="Actualizar"
+        android:icon="@drawable/ic_actualizar">
+
+    </item>
+    <item  android:id="@+id/navConfiguracion"
+        android:title="Configuracion"
+        >
+
+    </item>
+    </group>
+
+    <item  android:id="@+id/navSalir"
+        android:title="Salir"
+        >
+    </item>
+</menu>

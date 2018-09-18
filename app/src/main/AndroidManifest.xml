@@ -32,6 +32,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:configChanges="orientation|screenSize"
         >
         <activity
             android:name=".inicialActivity"
@@ -57,7 +58,7 @@
 
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps" />
+            android:label="@string/title_activity_maps" android:configChanges="orientation|screenSize"/>
         <activity android:name=".userActivity" />
         <activity android:name=".cargarTodosActivity" />
         <activity android:name=".MainActivity" android:screenOrientation="portrait"/>

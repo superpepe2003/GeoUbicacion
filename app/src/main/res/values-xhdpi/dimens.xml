@@ -4,4 +4,5 @@
     <dimen name="dialog_map">450dp</dimen>
     <dimen name="toolbar_tamaño">65dp</dimen>
     <dimen name="portada_imagen">100dp</dimen>
+    <dimen name="nav_imagen">150dp</dimen>
 </resources>

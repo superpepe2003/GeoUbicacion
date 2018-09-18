@@ -7,6 +7,7 @@
     android:orientation="vertical">
 
     <ImageView
+        android:id="@+id/miImagen"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/portada"
         android:layout_gravity="center_horizontal"
@@ -66,6 +67,12 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textColor="@android:color/holo_red_light" />
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mantener sesion en este dispositivo"
+        android:layout_gravity="center"
+        android:id="@+id/chkSession"/>
 
 
 </LinearLayout>

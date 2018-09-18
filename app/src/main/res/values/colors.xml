@@ -5,7 +5,8 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#635f61</color>
     <color name="foreGround">#ffff</color>
-    <color name="alpha">#b0303F9F</color>
+    <color name="alpha">#C0303F9F</color>
+    <color name="alpha_nav">#CFFFFFFF</color>
     <color name="foreground_material_light">#e86767</color>
     <color name="back_formulario">#eeeeee</color>
 </resources>

@@ -4,12 +4,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.icu.util.Output;
 import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -23,7 +19,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -33,31 +28,25 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.Marshal;
-import org.ksoap2.serialization.MarshalBase64;
-import org.ksoap2.serialization.MarshalHashtable;
-import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
-import org.w3c.dom.Text;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlSerializer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class registroActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CAPTURE_IMAGE = 200;
+
     ImageButton btnImage;
-    String foto, dir;
+    String dir;
     TextInputLayout txtAdminLayout, txtNombreLayout, txtUserLayout, txtPassLayout;
     TextInputEditText txtAdmin, txtNombre, txtUser, txtPass;
     Button btnGuardar, btnCancelar;
@@ -87,13 +76,26 @@ public class registroActivity extends AppCompatActivity {
         btnCancelar=findViewById(R.id.btnCancelar_Usuario);
 
         CargarEventos();
-        CargarImagenes();
+        //CargarImagenes();
         UsarChecked();
 
     }
 
-    private void CargarEventos()
+    public void onSaveInstanceState(Bundle estado)
     {
+        estado.putString("foto", cConeccion.foto);
+        super.onSaveInstanceState(estado);
+    }
+
+    public void onRestoreInstanceState(Bundle estado)
+    {
+        super.onRestoreInstanceState(estado);
+        cConeccion.foto= estado.getString("foto");
+    }
+
+
+
+    private void CargarEventos() {
         btnCancelar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,6 +118,13 @@ public class registroActivity extends AppCompatActivity {
                     miTask mTask= new miTask();
                     mTask.execute();
                 }
+            }
+        });
+
+        btnImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CamaraIntent();
             }
         });
 
@@ -168,6 +177,39 @@ public class registroActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void createImageFile(){
+        dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/picFolder/";
+        File newdir = new File(dir);
+        if (!newdir.exists()) {
+            newdir.mkdir();
+        }
+        String timeStamp =
+                new SimpleDateFormat("yyyyMMdd_HHmmss",
+                        Locale.getDefault()).format(new Date());
+        cConeccion.foto  = dir + "IMG_" + timeStamp + "_.jpg";
+    }
+
+    private void CamaraIntent() {
+        Intent pictureIntent = new Intent(
+                MediaStore.ACTION_IMAGE_CAPTURE);
+        if(pictureIntent.resolveActivity(getPackageManager()) != null){
+            //Create a file to store the image
+//            File photoFile = null;
+//            try {
+//                photoFile = createImageFile();
+//            } catch (IOException ex) {
+//            }
+//            if (photoFile != null) {
+                //Uri photoURI = FileProvider.getUriForFile(this,"com.utopia.usuario.geoubicacion", photoFile);
+                //pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT);//,
+                        //photoURI);
+                startActivityForResult(pictureIntent,1);
+//            }
+        }
+    }
+
+
 
     private Boolean Validar()
     {
@@ -223,9 +265,9 @@ public class registroActivity extends AppCompatActivity {
             newdir.mkdir();
         }
 
-        foto = dir + "imagen" + aleatorio + ".jpg";
+        cConeccion.foto = dir + "imagen" + aleatorio + ".jpg";
 
-        btnImage.setOnClickListener(new View.OnClickListener() {
+        /*btnImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent in = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -241,46 +283,52 @@ public class registroActivity extends AppCompatActivity {
                 in.putExtra(MediaStore.EXTRA_OUTPUT, out);
                 startActivityForResult(in, 1);
             }
-        });
+        });*/
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        //String a=data.getData().toString();
         try
         {
-        File file= new File(foto);
-        if(file.exists()) {
-            Bitmap originalBitmap = BitmapFactory.decodeFile(foto);
-            originalBitmap= ThumbnailUtils.extractThumbnail(originalBitmap, 320,320);
-            Matrix m = new Matrix();
-            m.postRotate(neededRotation(file));
+            //Bitmap b = (Bitmap) data.getExtras().get("data");
+            //btnImage.setImageBitmap(b);
+            createImageFile();
+//            File file= new File(cConeccion.foto);
+//            boolean file_existe= file.exists();
+//            if(file_existe) {
+                Bitmap originalBitmap = (Bitmap) data.getExtras().get("data");
+                //Bitmap originalBitmap = BitmapFactory.decodeFile(cConeccion.foto);
+                originalBitmap= ThumbnailUtils.extractThumbnail(originalBitmap, 320,320);
+                Matrix m = new Matrix();
+                //m.postRotate(neededRotation(originalBitmap));
 
-            originalBitmap = Bitmap.createBitmap(originalBitmap,
-                    0, 0, originalBitmap.getWidth(), originalBitmap.getHeight(),
-                    m, true);
+                originalBitmap = Bitmap.createBitmap(originalBitmap,
+                        0, 0, originalBitmap.getWidth(), originalBitmap.getHeight(),
+                        m, true);
 
-            RoundedBitmapDrawable roundDrawable = RoundedBitmapDrawableFactory.create(getResources(),originalBitmap);
-            roundDrawable.setCornerRadius(originalBitmap.getHeight());
+                RoundedBitmapDrawable roundDrawable = RoundedBitmapDrawableFactory.create(getResources(),originalBitmap);
+                roundDrawable.setCornerRadius(originalBitmap.getHeight());
 
 
-            File newfile = new File(foto);
-            OutputStream os;
+                File newfile = new File(cConeccion.foto);
+                OutputStream os;
 
-                os = new FileOutputStream(newfile);
-                //originalBitmap.compress(Bitmap.CompressFormat.PNG,100,os);
-                originalBitmap = roundDrawable.getBitmap();
-                originalBitmap.compress(Bitmap.CompressFormat.JPEG,75,os);
-                os.flush();
-                os.close();
+                    os = new FileOutputStream(newfile);
+                    //originalBitmap.compress(Bitmap.CompressFormat.PNG,100,os);
+                    originalBitmap = roundDrawable.getBitmap();
+                    originalBitmap.compress(Bitmap.CompressFormat.JPEG,75,os);
+                    os.flush();
+                    os.close();
 
-            //Uri out = FileProvider.getUriForFile(registroActivity.this, "com.utopia.usuario.geoubicacion", newfile);
+                //Uri out = FileProvider.getUriForFile(registroActivity.this, "com.utopia.usuario.geoubicacion", newfile);
 
-            //RoundedBitmapDrawable roundDrawable = RoundedBitmapDrawableFactory.create(getResources(),originalBitmap);
-            //roundDrawable.setCornerRadius(originalBitmap.getHeight());
+                //RoundedBitmapDrawable roundDrawable = RoundedBitmapDrawableFactory.create(getResources(),originalBitmap);
+                //roundDrawable.setCornerRadius(originalBitmap.getHeight());
 
-            btnImage.setImageDrawable(roundDrawable);
-            isFoto=true;
-            //base64String = imagenToByte();
-        }
+                btnImage.setImageDrawable(roundDrawable);
+                isFoto=true;
+                //base64String = imagenToByte();
+//            }
         }
         catch (Exception ex)
         {
@@ -367,7 +415,7 @@ public class registroActivity extends AppCompatActivity {
             // Modelo el request
             SoapObject request = new SoapObject(cConeccion.NAMESPACE, cConeccion.METHOD_NAME_GRABAR_USUARIO);
 
-            String fot1 = cConeccion.imagenToByte(foto);
+            String fot1 = cConeccion.imagenToByte(cConeccion.foto);
 
             //Escribir(fot1);
             request.addProperty("id", 0);

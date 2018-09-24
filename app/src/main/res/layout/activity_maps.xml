@@ -31,7 +31,7 @@
             xmlns:tools="http://schemas.android.com/tools"
             android:background="@color/alpha"
             android:elevation="4dp"
-            android:theme="@style/miTema"
+            android:theme="@style/WallSearchView"
             android:id="@+id/tool_bar"
             />
 

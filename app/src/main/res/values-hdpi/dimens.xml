@@ -6,4 +6,6 @@
     <dimen name="min_boton_ancho">150dp</dimen>
     <dimen name="portada_imagen">100dp</dimen>
     <dimen name="nav_imagen">150dp</dimen>
+    <dimen name="circulo">60dp</dimen>
+    <dimen name="circulo_alto">65dp</dimen>
 </resources>

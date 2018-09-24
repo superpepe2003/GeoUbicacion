@@ -35,8 +35,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerInside"
-                android:src="@drawable/imageubi"
-                app:layout_collapseMode="parallax" />
+                android:src="@drawable/fondo2"
+                app:layout_collapseMode="parallax"
+                android:alpha="0.50"/>
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -45,7 +46,7 @@
                 android:theme="@style/miTema"
                 app:layout_collapseMode="pin"
                 app:title="Geo Ubicacion"
-                app:titleTextColor="@color/foreGround">
+                app:titleTextColor="@color/Negro">
 
             </android.support.v7.widget.Toolbar>
         </android.support.design.widget.CollapsingToolbarLayout>

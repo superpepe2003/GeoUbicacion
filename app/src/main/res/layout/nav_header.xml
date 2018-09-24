@@ -1,15 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center"
-    android:background="@color/alpha">
+    android:background="@color/alpha"
+    android:orientation="vertical">
 
     <ImageView android:layout_width="wrap_content"
-           android:layout_height="@dimen/nav_imagen"
-            android:src="@drawable/images"
-            android:id="@+id/imgNavegador"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="40dp"/>
+               android:layout_height="@dimen/nav_imagen"
+                android:src="@drawable/userrostro"
+                android:id="@+id/imgNavegador"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="40dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distancia del radio a monitorear"/>
+
+    <SeekBar
+        android:id="@+id/skBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="1000"
+        android:min="0"
+        android:progress="100"
+        android:progressBackgroundTint="@color/foreGround"
+        ></SeekBar>
+    <TextView
+        android:id="@+id/txtMetros"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:layout_marginLeft="10dp"
+        android:text="100 mts"
+        />
 
 </LinearLayout>

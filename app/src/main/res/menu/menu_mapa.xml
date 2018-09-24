@@ -4,10 +4,4 @@
     <item android:id="@+id/menu_buscar" android:title="Buscar"
         app:showAsAction="collapseActionView|ifRoom" android:icon="@drawable/ic_buscar"
         app:actionViewClass="android.support.v7.widget.SearchView"/>
-    <item android:id="@+id/menu_elimina" android:title="@string/menu_mapa_remove"
-        app:showAsAction="ifRoom" android:icon="@drawable/ic_eliminar"/>
-    <item android:id="@+id/menu_actualiza" android:title="@string/menu_mapa_actualizar"
-        app:showAsAction="ifRoom" android:icon="@drawable/ic_actualizar"/>
-    <item android:id="@+id/menu_setting" android:title="@string/menu_mapa_config"
-        app:showAsAction="never"/>
 </menu>

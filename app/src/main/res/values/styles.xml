@@ -37,4 +37,10 @@
         <item name="android:background">@drawable/botonesinvertido</item>
     </style>
 
+    <style name="WallSearchView" parent="miTema">
+        ...
+        <item name="iconifiedByDefault">false</item>
+        <item name="colorControlActivated">#FFffffff</item>
+    </style>
+
     </resources>

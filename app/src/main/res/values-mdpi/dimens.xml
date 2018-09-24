@@ -5,4 +5,5 @@
     <dimen name="toolbar_tamaño">50dp</dimen>
     <dimen name="portada_imagen">75dp</dimen>
     <dimen name="nav_imagen">130dp</dimen>
+    <dimen name="circulo">50dp</dimen>
 </resources>

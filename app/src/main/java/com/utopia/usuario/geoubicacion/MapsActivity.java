@@ -13,9 +13,14 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -36,11 +41,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.support.v7.widget.SearchView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.util.concurrent.HandlerExecutor;
@@ -51,6 +61,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -61,6 +73,7 @@ import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
+import org.w3c.dom.Text;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
@@ -68,6 +81,7 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -90,10 +104,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ActionBarDrawerToggle abdt;
     private NavigationView nav_view;
     ImageView img;
+
+    Toolbar toolbar;
+
+    TextView txtMetros;
+    SeekBar skBar;
     
     ProgressDialog dialogo;
-
-    double _Lat,_Long;
 
     private String TAG = "Vik";
 
@@ -104,6 +121,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     TimerTask task;
     LocationManager locationManager;
 
+    double _latitude = 0,_longitude = 0;
+
+    Circle _MapRadio;
+    int circuloMax=100;
+
+    boolean _ejecutando, color = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,7 +136,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Intent in = getIntent();
         //_user = (Usuario) in.getSerializableExtra("User");
         _user= in.getParcelableExtra("User");
+        cargarMiUbicacion();
 
+//        _latitude=_user.Ubicaciones.Latitud;
+//        _longitude= _user.Ubicaciones.Longitud;
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -121,8 +148,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         //TOOLBAR
-        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
+        toolbar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
+        toolbar.setTitle(_user.nombre);
 
         //CREO LA BARRA DE NAVEGACION
         dl=findViewById(R.id.dl);
@@ -145,7 +173,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 {
                     case R.id.navSalir :
                         BorrarUsuario();
-                        locationManager.removeUpdates(locListener);
+                        //locationManager.removeUpdates(locListener);
                         task.cancel();
                         finish();
                         break;
@@ -163,20 +191,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         roundDrawable.setCornerRadius(_user.foto.getHeight());
         img.setImageDrawable(roundDrawable);
 
+        skBar = hView.findViewById(R.id.skBar);
+        txtMetros = hView.findViewById(R.id.txtMetros);
+
+        skBar.getProgressDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        skBar.getThumb().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
+
+        skBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progreso;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                progreso=progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                txtMetros.setText(progreso + " mts");
+                circuloMax = progreso;
+                _MapRadio.setRadius(progreso);
+                CargarUbicacionesEnMapa(false);
+            }
+        });
+
         //OBTENGO LOS SUPERVISADOS
 
-        AsyncCallWS miTarea= new AsyncCallWS(this);
-        miTarea.execute(1);
+        //AsyncCallWS miTarea= new AsyncCallWS(this, true );
+        //miTarea.execute(1);
 
         cargarMiUbicacion();
-
-//        Handler handler = new Handler();
-//        handler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                TraerUbicaciones();
-//            }
-//        },10000);
 
         task = new TimerTask() {
             @Override
@@ -186,8 +233,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         try {
                             //Ejecuta tu AsyncTask!
                             //AgregarMarcadores();
-                            AsyncCallWS miTarea= new AsyncCallWS(MapsActivity.this);
-                            miTarea.execute(3);
+                            if(!_ejecutando) {
+                                AsyncCallWS miTarea = new AsyncCallWS(MapsActivity.this, false);
+                                miTarea.execute(1);
+                            }
 
                         } catch (Exception e) {
                             Log.e("error", e.getMessage());
@@ -197,7 +246,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         };
 
-        timer.schedule(task, 0, 15000);  //ejecutar en intervalo de 3 segundos.
+        timer.schedule(task, 0, 5000);  //ejecutar en intervalo de 3 segundos.
+
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+       getMenuInflater().inflate(R.menu.menu_mapa, menu);
+        return true;
     }
 
     private void BorrarUsuario()
@@ -243,15 +300,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        Location location= locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        //Location location= locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(location!=null) {
-            _Long = location.getLongitude();
-            _Lat = location.getLatitude();
-            Grabar_mi_Ubicacion();
+            _longitude = location.getLongitude();
+            _latitude = location.getLatitude();
+            if(_user.Ubicaciones==null)
+                _user.Ubicaciones= new Ubicacion();
+            _user.Ubicaciones.Longitud=_longitude;
+            _user.Ubicaciones.Latitud=_latitude;
         }
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 20000, 5, locListener);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,20000,5,locListener);
+        //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 5, locListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,5000,5,locListener);
 
     }
 
@@ -259,9 +319,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LocationListener locListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
-            _Long=location.getLongitude();
-            _Lat=location.getLatitude();
-            Grabar_mi_Ubicacion();
+            _longitude = location.getLongitude();
+            _latitude = location.getLatitude();
+            _user.Ubicaciones.Longitud = _longitude;
+            _user.Ubicaciones.Latitud = _latitude;
         }
 
         @Override
@@ -282,47 +343,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void Grabar_mi_Ubicacion()
     {
-        AsyncCallWS task = new AsyncCallWS(this);
+        AsyncCallWS task = new AsyncCallWS(this,false);
         task.execute(2);
     }
 
-        /*int id = opcMenu.getItemId();
-        if (id == R.id.menu_actualiza) {
-            AsyncCallWS miTarea= new AsyncCallWS(MapsActivity.this);
-            miTarea.execute(1);
+
+
+    public String getGeocoderAddress(Context context, LatLng location) {
+        String ruta = "";
+        if (location != null) {
+
+            Geocoder geocoder = new Geocoder(context, Locale.ENGLISH);
+
+            try {
+                /**
+                 * Geocoder.getFromLocation - Returns an array of Addresses
+                 * that are known to describe the area immediately surrounding the given latitude and longitude.
+                 */
+                List<Address> addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1);
+
+                if(!addresses.isEmpty())
+                {
+                    Address a = addresses.get(0);
+                    String temp = a.getAddressLine(0);
+                    ruta = temp.substring(0 , temp.indexOf(",")) + "\n" + a.getLocality() + "\n" + a.getCountryName();
+                }
+                return ruta;
+            } catch (IOException e) {
+                //e.printStackTrace();
+                //Log.e(TAG, "Impossible to connect to Geocoder", e);
+            }
         }
-        if (id == R.id.menu_elimina) {
-            createDialog().show();
-        }
-        if (id == R.id.menu_buscar) {
-            createDialog().show();
-        }*/
-       //return abdt.onOptionsItemSelected(opcMenu) || super.onOptionsItemSelected(opcMenu);
 
-
-
-    //public AlertDialog createDialog(){
-    //    AlertDialog.Builder builder=new AlertDialog.Builder(this);
-   //     return null;
-//        builder.setTitle("Borrar Ubicaciones")
-//                .setMessage("¿Seguro desea borrar las Ubicaciones?")
-//                .setPositiveButton("Confirmar",
-//                        new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                AsyncCallWS miTarea= new AsyncCallWS(MapsActivity.this);
-//                                miTarea.execute(2, _user.codigo);
-//                            }
-//                        })
-//                .setNegativeButton("Cancelar",
-//                        new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//
-//                            }
-//                        });
-//        return builder.create();
-   // }
+        return ruta;
+    }
 
 
     /**
@@ -338,8 +392,61 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        AsyncCallWS task = new AsyncCallWS(this);
+        AsyncCallWS task = new AsyncCallWS(this,true);
         task.execute(1);
+
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+            @Override
+            public View getInfoWindow(Marker arg0) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+
+                LinearLayout info = new LinearLayout(MapsActivity.this);
+                info.setOrientation(LinearLayout.VERTICAL);
+
+                TextView title = new TextView(MapsActivity.this);
+                title.setTextColor(Color.BLACK);
+                title.setGravity(Gravity.CENTER);
+                title.setTypeface(null, Typeface.BOLD);
+                title.setText(marker.getTitle());
+
+                TextView snippet = new TextView(MapsActivity.this);
+                snippet.setTextColor(Color.GRAY);
+                snippet.setText(marker.getSnippet());
+
+                info.addView(title);
+                info.addView(snippet);
+
+                return info;
+            }
+        });
+
+        /*mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if(marker!=null) {
+                    LatLng l = marker.getPosition();
+                    List<Address> list = getGeocoderAddress(MapsActivity.this, l);
+                    if (list != null) {
+                        Address a = list.get(0);
+                        String dire = a.getAddressLine(0);
+                        String[] dires = dire.split(",");
+                        String arregloTitulo = "";
+                        for(String c:dires)
+                        {
+
+                            arregloTitulo = arregloTitulo + "\n" + c;}
+                        marker.setSnippet(arregloTitulo);
+                    }
+                    marker.showInfoWindow();
+                }
+                return true;
+            }
+        });*/
 
         //miUbicacion();
 
@@ -355,7 +462,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void onBackPressed()
     {
-        locationManager.removeUpdates(locListener);
+        //locationManager.removeUpdates(locListener);
         task.cancel();
         finish();
     }
@@ -366,10 +473,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Context ctx;
         int param=0;
         String r;
+        boolean animation;
 
-        public AsyncCallWS(Context ctx)
+        public AsyncCallWS(Context ctx, Boolean animation)
         {
             this.ctx=ctx;
+            this.animation=animation;
         }
 
         @Override
@@ -378,16 +487,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             //Log.i(TAG, "doInBackground");
             //Permisos();
             if(param==1) {
+                _ejecutando=true;
+                Enviar_mi_Ubicacion();
                 CargarDatosSupervisados();
             }
-            else if(param==2)
-            {
-                Enviar_mi_Ubicacion();
-            }
-            else if(param==3)
-            {
-                TraerUbicaciones();
-            }
+//            else if(param==2)
+//            {
+//                Enviar_mi_Ubicacion();
+//            }
+//            else if(param==3)
+//            {
+//                TraerUbicaciones();
+//            }
             return false;
         }
 
@@ -395,13 +506,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPostExecute(Boolean result) {
             //dialogo.dismiss();
             if(param==1) {
-                CargarUbicacionesEnMapa(true);
+                CargarUbicacionesEnMapa(animation);
+                _ejecutando=false;
             }
-            else if(param==3)
-            {
-                if(!_user.Supervisados.isEmpty())
-                    CargarUbicacionesEnMapa(false);
-            }
+//            else if(param==3)
+//            {
+//                if(!_user.Supervisados.isEmpty())
+//                    CargarUbicacionesEnMapa(false);
+//            }
         }
 
         @Override
@@ -427,8 +539,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             SoapObject request = new SoapObject(cConeccion.NAMESPACE, cConeccion.METHOD_NAME_GRABAR_UBICACION);
 
             request.addProperty("id", _user.id);
-            request.addProperty("lat",_Lat);
-            request.addProperty("lng",_Long);
+            request.addProperty("lat",_latitude);
+            request.addProperty("lng",_longitude);
 
             // Modelo el Sobre
             SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER11);
@@ -521,13 +633,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         sobre.dotNet=true;
         sobre.setOutputSoapObject(request);
 
-        HttpTransportSE transporte = new HttpTransportSE(cConeccion.URL);
+         HttpTransportSE transporte = new HttpTransportSE(cConeccion.URL);
         try
         {
             transporte.call(cConeccion.SOAP_ACTION_GET_SUPERVISADOS,sobre);
             SoapObject respuesta= (SoapObject)sobre.getResponse();
 
             //SUPERVISADOS
+            if(_user.Supervisados!=null)
+                _user.Supervisados.clear();
 
             for(int j=0; j < respuesta.getPropertyCount();j++)
             {
@@ -566,28 +680,50 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void CargarUbicacionesEnMapa(Boolean animated)
     {
+        //BORRO LOS MARCADORES
         for(Marker m:marcador)
             m.remove();
 
+        //VERIFICO SI EL RADIO NO ES NULL Y MODIFICO EL CENTRO, SI NO LO CREO
+        if(_MapRadio!=null) {
+            _MapRadio.setCenter(new LatLng(_user.Ubicaciones.Latitud,_user.Ubicaciones.Longitud));
+        }
+        else {
+            _MapRadio = mMap.addCircle(new CircleOptions()
+                    .center(new LatLng(_user.Ubicaciones.Latitud, _user.Ubicaciones.Longitud))
+                    .radius(circuloMax)
+                    .strokeColor(getResources().getColor(R.color.alpha_contorno))
+                    .fillColor(getResources().getColor(R.color.alpha_circle))
+            );
+        }
+
+        //PONGO LOS NUEVOS MARCADORES
         for(Usuario _u: _user.Supervisados) {
             if(_u.Ubicaciones!=null)
                 marcador.add(agregarMarcador(_u.Ubicaciones.Latitud, _u.Ubicaciones.Longitud, _u.nombre, _u.foto, animated));
         }
+
     }
 
     private Marker agregarMarcador(double lat, double lng, String nom, Bitmap foto, boolean animated) {
         LatLng coordenadas = new LatLng(lat, lng);
         CameraUpdate miUbicacion = CameraUpdateFactory.newLatLngZoom(coordenadas, 18);
         if(foto==null)
-            foto=BitmapFactory.decodeResource(getResources(), R.drawable.imageubi);
-        Drawable circleDrawable= resizeMapIcons(foto, 200,200);
-        BitmapDescriptor markerIcon= getMarkerIconFromDrawable(circleDrawable,10);
+            foto=BitmapFactory.decodeResource(getResources(), R.drawable.userrostro);
+        //Drawable circleDrawable= resizeMapIcons(foto, (int)getResources().getDimension(R.dimen.circulo),(int)getResources().getDimension(R.dimen.circulo));
+//        Drawable circleDrawable;
+//        if (animated)
+//            circleDrawable= resizeMapIcons(foto, 180,180);
+//        else
+        Drawable circleDrawable= resizeMapIcons(foto, (int)getResources().getDimension(R.dimen.circulo),(int)getResources().getDimension(R.dimen.circulo));
+        BitmapDescriptor markerIcon= getMarkerIconFromDrawable(circleDrawable,10, dentro(lat,lng));
 
         //BitmapDescriptor markerIcon = resizeMapIcons(Bitmap, 100, 100);
         //mMap.clear();
         Marker miMarcador = mMap.addMarker(new MarkerOptions()
                 .position(coordenadas)
                 .title(nom)
+                .snippet(getGeocoderAddress(MapsActivity.this, coordenadas))
                 .icon(markerIcon));
                 //.icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons(foto,150,150))));
         if(animated)
@@ -595,17 +731,51 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return miMarcador;
     }
 
-    private BitmapDescriptor getMarkerIconFromDrawable(Drawable drawable, int margen)
+    public boolean dentro(double lat, double lng){
+        float[] disResultado = new float[2];
+
+        Location.distanceBetween(lat,lng,_user.Ubicaciones.Latitud,_user.Ubicaciones.Longitud, disResultado);
+
+        if(_MapRadio!=null)
+            if(disResultado[0] > _MapRadio.getRadius())
+                return false;
+
+        return true;
+    }
+
+    private BitmapDescriptor getMarkerIconFromDrawable(Drawable drawable, int margen, boolean dentro)
     {
-        Canvas canvas= new Canvas();
-        Bitmap bitmap= Bitmap.createBitmap(drawable.getIntrinsicWidth(),drawable.getIntrinsicHeight(),Bitmap.Config.ARGB_8888);
+        Bitmap bitmap;
+        Canvas canvas = new Canvas();
+        bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight()+ 30, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
-        drawable.setBounds(margen,margen,drawable.getIntrinsicWidth()-margen, drawable.getIntrinsicHeight()-margen);
+        drawable.setBounds(margen, margen, drawable.getIntrinsicWidth() - margen , drawable.getIntrinsicHeight() - margen);
+
+        Path path = new Path();
+        path.moveTo(margen , drawable.getIntrinsicHeight() / 2);
+        path.lineTo(drawable.getIntrinsicWidth()+ margen, drawable.getIntrinsicHeight() / 2);
+        path.lineTo(drawable.getIntrinsicWidth()/2, drawable.getIntrinsicHeight() + 20);
         Paint p = new Paint();
-        p.setColor(Color.WHITE);
+
         p.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(drawable.getIntrinsicWidth()/2,drawable.getIntrinsicHeight()/2,drawable.getIntrinsicWidth()/2,p);
-        drawable.draw(canvas);
+
+
+        if(dentro) {
+            p.setColor(Color.WHITE);
+            p.setStyle(Paint.Style.FILL);
+            canvas.drawPath(path,p);
+            canvas.drawCircle(drawable.getIntrinsicWidth() / 2, drawable.getIntrinsicHeight() / 2, drawable.getIntrinsicWidth() / 2, p);
+            drawable.draw(canvas);
+        }
+        else
+        {
+            p.setColor(getResources().getColor(R.color.alpha_circle_fuera_de_limite));
+            p.setStyle(Paint.Style.FILL);
+            canvas.drawPath(path,p);
+            drawable.draw(canvas);
+            canvas.drawCircle(drawable.getIntrinsicWidth() / 2, drawable.getIntrinsicHeight() / 2, drawable.getIntrinsicWidth() / 2, p);
+        }
+
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
@@ -642,163 +812,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    /*public Bitmap redonderFoto(Bitmap foto)
-    {
-        RoundedBitmapDrawable roundDrawable = RoundedBitmapDrawableFactory.create(getResources(),foto);
-        roundDrawable.setCornerRadius(foto.getHeight());
-        return roundDrawable.getBitmap();
-    }*/
-
-    /*private void actualizarUbicacion(Location location) {
-        if (location != null) {
-            lat = location.getLatitude();
-            lng = location.getLongitude();
-            //agregarMarcador(lat, lng, "hello");
-        }
-    }*/
-
-    /*LocationListener locListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-            actualizarUbicacion(location);
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
-    };*/
-
-    //@TargetApi(23)
-    /*private void Permisos() {
-
-       *//* if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }*//*
-
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        //actualizarUbicacion(location);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 15000, 0, locListener);
-
-    }*/
-
-    /*public Boolean EliminarDatos(int codigo) {
-        try {
-
-            // Modelo el request
-            SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME2);
-            request.addProperty("codigo", codigo);
-            //request.addProperty("Param", "valor"); // Paso parametros al WS
-
-            // Modelo el Sobre
-            SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER10);
-            sobre.dotNet = true;
-            sobre.setOutputSoapObject(request);
-
-            // Modelo el transporte
-            HttpTransportSE transporte = new HttpTransportSE(URL);
-
-            // Llamada
-            transporte.call(SOAP_ACTION2, sobre);
-
-            // Resultado
-            Boolean resultado = Boolean.parseBoolean(sobre.getResponse().toString());
-            //CargarResultados(resultado);
-            return resultado;
-
-        } catch (Exception e) {
-            //Log.e("ERROR", e.getMessage());
-            return false;
-        }
-    }*/
-
-  /* public void CargarDatos() {
-        try {
-
-            // Modelo el request
-            SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
-            request.addProperty("usuario", _user.usuario);
-            request.addProperty("pass", _user.pass);
-            //request.addProperty("Param", "valor"); // Paso parametros al WS
-
-            // Modelo el Sobre
-            SoapSerializationEnvelope sobre = new SoapSerializationEnvelope(SoapEnvelope.VER10);
-            sobre.dotNet = true;
-            sobre.setOutputSoapObject(request);
-
-            // Modelo el transporte
-            HttpTransportSE transporte = new HttpTransportSE(URL);
-
-            // Llamada
-            transporte.call(SOAP_ACTION, sobre);
-
-            // Resultado
-            SoapObject resultado = (SoapObject) sobre.getResponse();
-            CargarResultados(resultado);
-
-        } catch (Exception e) {
-            //Log.e("ERROR", e.getMessage());
-        }
-    }*/
-
-    /*public void CargarResultados(SoapObject resultado) {
-        //_user.Ubicaciones.clear();
-
-        int cant= resultado.getPropertyCount();
-        if(cant>0) {
-            //_user.Ubicaciones.clear();
-
-            SoapObject miUbicacion = (SoapObject) resultado.getProperty(4);
-
-            for (int j = 0; j < miUbicacion.getPropertyCount(); j++) {
-                SoapObject u = (SoapObject) miUbicacion.getProperty(j);
-                Ubicacion ubi = new Ubicacion();
-                ubi.id = Integer.parseInt(u.getProperty(0).toString());
-                ubi.Latitud = Double.parseDouble(u.getProperty(1).toString());
-                ubi.Longitud = Double.parseDouble(u.getProperty(2).toString());
-               // _user.Ubicaciones.add(ubi);
-            }
-        }
-    }*/
-
-    /*public void AgregarMarcadores() {
-        BorrarMarcadores();
-
-        *//*for (Ubicacion ubi : _user.Ubicaciones)
-            marcador.add(agregarMarcador(ubi.Latitud, ubi.Longitud, ubi.Nombre));*//*
-    }*/
-
-    /*public void BorrarMarcadores(){
-        if (!marcador.isEmpty()) {
-            for(Marker mar:marcador)
-                mar.remove();
-            marcador.clear();
-        }
-    }*/
 
     /*public Marker BuscarMarcador(String nombre)
     {

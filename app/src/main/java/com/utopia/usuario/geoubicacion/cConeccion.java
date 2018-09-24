@@ -23,6 +23,8 @@ public class cConeccion {
     public static final String METHOD_NAME_GET_UBICACION = "GetUbicaciones";
     public static final String SOAP_ACTION_GET_UBICACION = "http://tempuri.org/IWSGeolizacion/GetUbicaciones";
 
+    public static String foto="";
+
     public static Bitmap ConvertiABitmap(String compress)
     {
         String base64String = compress;

@@ -52,41 +52,49 @@ public class inicialActivity extends AppCompatActivity {
 
     private Usuario _usuario = new Usuario();
 
+    Button btnIngresar;
+    Button btnRegistrar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inicial);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        btnIngresar = (Button) findViewById(R.id.btnLogin);
+        btnRegistrar = (Button) findViewById(R.id.btnRegistrar);
+
         LocationManager location = (LocationManager)getSystemService(LOCATION_SERVICE);
         if(!location.isProviderEnabled(location.GPS_PROVIDER))
             alertNoGps();
-        _permisos=checkPermissions();
-        if (_permisos) {
+        if(checkPermissions()) {
             //  permissions  granted.
+            CargarEventosBotones();
+        }
 
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
+    }
 
-            Button btnIngresar = (Button) findViewById(R.id.btnLogin);
-            Button btnRegistrar = (Button) findViewById(R.id.btnRegistrar);
-
-            btnIngresar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(!CargarUsuarioGuardado()) {
-                        Intent in = new Intent(inicialActivity.this, MainActivity.class);
-                        startActivity(in);
-                    }
-                }
-            });
-
-            btnRegistrar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent in = new Intent(inicialActivity.this, registroActivity.class);
+    private void CargarEventosBotones()
+    {
+        btnIngresar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!CargarUsuarioGuardado()) {
+                    Intent in = new Intent(inicialActivity.this, MainActivity.class);
                     startActivity(in);
                 }
-            });
-        }
+            }
+        });
+
+        btnRegistrar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent in = new Intent(inicialActivity.this, registroActivity.class);
+                startActivity(in);
+            }
+        });
     }
 
     private boolean CargarUsuarioGuardado()
@@ -267,7 +275,7 @@ public class inicialActivity extends AppCompatActivity {
         switch (requestCode) {
             case MULTIPLE_PERMISSIONS:{
                 if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    _permisos=true;
+                    CargarEventosBotones();
 
                     // permissions granted.
                 } else {

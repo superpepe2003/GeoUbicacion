@@ -9,4 +9,8 @@
     <color name="alpha_nav">#CFFFFFFF</color>
     <color name="foreground_material_light">#e86767</color>
     <color name="back_formulario">#eeeeee</color>
+    <color name="alpha_circle">#15FF0000</color>
+    <color name="alpha_contorno">#30FF0000</color>
+    <color name="alpha_circle_fuera_de_limite">#90FF0000</color>
+    <color name="Negro">#000000</color>
 </resources>
